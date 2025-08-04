@@ -1,11 +1,10 @@
 const admin = require("firebase-admin");
 const axios = require("axios");
 const {mapKakaoUser} = require("./utils/social-mapper");
-const {createUserDocManually} = require("./create-user-doc");
 
-module.exports = async (data, context) => {
+module.exports.handler = async (request) => {
   try {
-    const accessToken = data.accessToken;
+    const accessToken = request.data.accessToken;
     if (!accessToken) {
       throw new Error("accessToken is required");
     }
@@ -14,15 +13,12 @@ module.exports = async (data, context) => {
       headers: {Authorization: `Bearer ${accessToken}`},
     });
 
-    console.log("kakao API response", res.status, res.data);
-
     const user = mapKakaoUser(res.data);
-    await createUserDocManually(user);
     const customToken = await admin.auth().createCustomToken(user.uid, user);
 
     return {token: customToken};
   } catch (error) {
-    console.error("kakaoCustomAuth error:", error?.response?.data || error);
+    console.error("kakaoCustomAuth error:", error);
     throw new Error("Failed to authenticate with Kakao");
   }
 };

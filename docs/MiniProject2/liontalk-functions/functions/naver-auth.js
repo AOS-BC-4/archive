@@ -2,9 +2,8 @@
 const admin = require("firebase-admin");
 const axios = require("axios");
 const {mapNaverUser} = require("./utils/social-mapper");
-const {createUserDocManually} = require("./create-user-doc");
 
-module.exports = async (request) => {
+module.exports.handler = async (request) => {
   try {
     const accessToken = request.data.accessToken;
     if (!accessToken) {
@@ -16,7 +15,6 @@ module.exports = async (request) => {
     });
 
     const user = mapNaverUser(res.data);
-    await createUserDocManually(user);
     const customToken = await admin.auth().createCustomToken(user.uid, user);
 
     return {token: customToken};
